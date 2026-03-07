@@ -1,0 +1,58 @@
+---
+description: Diretrizes obrigatórias do frontend — ShadcnUI, SWR, react-hook-form, Data Table
+alwaysApply: true
+---
+
+# Diretrizes do Frontend (Futuro Mentoria)
+
+Estas diretrizes devem ser seguidas em **todo** trabalho no frontend. Consultar antes de implementar qualquer feature ou alteração.
+
+## 1. UI — Sempre ShadcnUI
+
+- **Componentes de interface**: usar exclusivamente componentes do [ShadcnUI](https://ui.shadcn.com/).
+- Não criar componentes customizados para coisas que o Shadcn já oferece (Button, Input, Select, Dialog, etc.).
+- Antes de criar um novo componente, verificar se já existe no Shadcn ou se pode ser composto com os existentes.
+- Instalar novos componentes via CLI quando necessário: `npx shadcn@latest add <component>`.
+
+## 2. Dados dinâmicos — useSWR
+
+- **Busca de dados no cliente**: usar **SWR** (`useSWR`) para fetching, cache e revalidação.
+- Evitar `fetch`/`axios` diretos em componentes para dados que mudam ou precisam de revalidação; preferir hooks que retornem `{ data, error, isLoading, mutate }`.
+- Padrão: `useSWR(key, fetcher)` com `key` estável e `fetcher` que chame a API; usar `mutate` para revalidar após mutations.
+
+```ts
+// ✅ Preferir
+const { data, error, isLoading, mutate } = useSWR('/api/endpoint', fetcher);
+
+// ❌ Evitar em código de UI para dados dinâmicos
+const [data, setData] = useState(null);
+useEffect(() => { fetch(...).then(setData); }, []);
+```
+
+## 3. Formulários — react-hook-form + ShadcnUI
+
+- **Formulários**: usar **react-hook-form** com os componentes de formulário do ShadcnUI.
+- Seguir a documentação do Shadcn para [Forms](https://ui.shadcn.com/docs/components/form): uso de `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`.
+- Validação com **Zod** e `@hookform/resolvers` (zodResolver).
+- Não controlar formulários apenas com `useState` para cada campo; usar `useForm` do react-hook-form.
+
+```ts
+// ✅ Preferir
+const form = useForm<Schema>({
+  resolver: zodResolver(schema),
+  defaultValues: { ... },
+});
+// + Form/FormField/FormItem/FormControl/FormMessage do Shadcn
+```
+
+## 4. Tabelas — Data Table (Shadcn + TanStack)
+
+- **Tabelas de dados**: usar o padrão **Data Table** do ShadcnUI, baseado em **TanStack Table** (@tanstack/react-table).
+- Seguir a documentação do Shadcn para [Data Table](https://ui.shadcn.com/docs/components/data-table): colunas definidas com `columnDef`, uso de `DataTable` + `DataTablePagination` quando fizer sentido.
+- Não implementar tabelas apenas com `<table>` e map; usar a estrutura de colunas e os componentes do Shadcn (Table, DataTable, etc.).
+
+Resumo:
+- **UI** → ShadcnUI  
+- **Dados dinâmicos** → useSWR  
+- **Formulários** → react-hook-form + Shadcn Form + Zod  
+- **Tabelas** → Shadcn Data Table (TanStack Table)
