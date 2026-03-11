@@ -45,6 +45,7 @@ async function getCurrentUser(request: NextRequest): Promise<UserType | null> {
     return null;
   } catch (error) {
     console.log(error)
+    return null;
   }
 }
 
