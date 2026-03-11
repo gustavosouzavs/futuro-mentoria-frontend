@@ -33,8 +33,6 @@ async function getCurrentUser(request: NextRequest): Promise<UserType | null> {
   const base = apiUrl ? apiUrl.replace(/\/$/, "") : request.nextUrl.origin;
   const url = `${base}/api/auth/me`;
   const cookie = request.cookies.getAll().map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
-  console.log(cookie);
-  console.log(url)
   try {
     const res = await fetch(url, {
       headers: { cookie },
@@ -42,6 +40,7 @@ async function getCurrentUser(request: NextRequest): Promise<UserType | null> {
     });
     if (!res.ok) return null;
     const data = (await res.json()) as AuthMeResponse;
+    console.log(data)
     const role = data.user?.role ?? null;
     if (role && ["student", "mentor", "admin"].includes(role)) return role as UserType;
     return null;
