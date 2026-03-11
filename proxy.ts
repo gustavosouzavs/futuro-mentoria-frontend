@@ -38,9 +38,9 @@ async function getCurrentUser(request: NextRequest): Promise<UserType | null> {
       headers: { cookie },
       cache: "no-store",
     });
+    console.log(res.json())
     if (!res.ok) return null;
     const data = (await res.json()) as AuthMeResponse;
-    console.log(data)
     const role = data.user?.role ?? null;
     if (role && ["student", "mentor", "admin"].includes(role)) return role as UserType;
     return null;
