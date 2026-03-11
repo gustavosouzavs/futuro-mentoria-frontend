@@ -38,20 +38,20 @@ async function getCurrentUser(request: NextRequest): Promise<UserType | null> {
       headers: { cookie },
       cache: "no-store",
     });
-    console.log(res.json())
     if (!res.ok) return null;
     const data = (await res.json()) as AuthMeResponse;
     const role = data.user?.role ?? null;
     if (role && ["student", "mentor", "admin"].includes(role)) return role as UserType;
     return null;
-  } catch {
-    return null;
+  } catch (error) {
+    console.log(error)
   }
 }
 
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const userRole = await getCurrentUser(request);
+  console.log(userRole)
 
   if (isPublicPath(pathname)) {
     if (userRole) {
