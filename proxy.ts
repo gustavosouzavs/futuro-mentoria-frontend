@@ -31,7 +31,7 @@ interface AuthMeResponse {
 async function getCurrentUser(request: NextRequest): Promise<UserType | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const base = apiUrl ? apiUrl.replace(/\/$/, "") : request.nextUrl.origin;
-  const url = `${base}/api/auth/me`;
+  const url = `http://127.0.0.1:3333/api/auth/me`;
   const cookie = request.cookies.getAll().map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
   try {
     const res = await fetch(url, {
