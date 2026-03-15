@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserPlus, Mail, Lock, User, Phone } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import { authApi } from "@/lib/api";
 
 const grades = [
@@ -85,6 +85,8 @@ export function RegisterClient() {
   });
 
   const userType = form.watch("userType");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const isSubmitting = form.formState.isSubmitting;
 
   const onSubmit = async (values: RegisterFormValues) => {
@@ -255,11 +257,21 @@ export function RegisterClient() {
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-9"
+                          className="pl-9 pr-9"
                           {...field}
                         />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -277,11 +289,21 @@ export function RegisterClient() {
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
-                          type="password"
+                          type={showConfirmPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-9"
+                          className="pl-9 pr-9"
                           {...field}
                         />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
                       </div>
                     </FormControl>
                     <FormMessage />

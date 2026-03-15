@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Users,
   Settings,
+  Clock,
   LogOut,
   Menu,
 } from "lucide-react";
@@ -24,6 +25,11 @@ const adminNavItems = [
     title: "Dashboard",
     href: "/admin/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Horários",
+    href: "/horarios",
+    icon: Clock,
   },
   {
     title: "Usuários",

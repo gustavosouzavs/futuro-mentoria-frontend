@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { fetcher } from "@/lib/fetcher";
@@ -206,11 +207,19 @@ export function DashboardClient() {
 
   return (
     <div className="container px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Painel do Mentor</h1>
-        <p className="mt-2 text-muted-foreground">
-          Gerencie seus horários disponíveis para mentorias
-        </p>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Painel do Mentor</h1>
+          <p className="mt-2 text-muted-foreground">
+            Gerencie seus horários disponíveis para mentorias
+          </p>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/horarios" className="gap-2">
+            <Clock className="h-4 w-4" />
+            Ver horários de hoje
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

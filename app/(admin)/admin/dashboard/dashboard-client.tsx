@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import useSWR from "swr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Settings, Save } from "lucide-react";
+import { Settings, Save, Users, Calendar, MessageSquare, Star, TrendingUp, AlertCircle } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
-import { adminScheduleApi } from "@/lib/api";
+import { adminScheduleApi, adminMetricsApi } from "@/lib/api";
 
 interface TimeSlotConfig {
   id: string;
@@ -52,6 +53,10 @@ const defaultConfig: DayConfig[] = daysOfWeek.map((day) => ({
 }));
 
 export function DashboardClient() {
+  const { data: metricsData, isLoading: metricsLoading } = useSWR(
+    "admin-metrics",
+    () => adminMetricsApi.get()
+  );
   const { data, isLoading: loading, mutate } = useSWR<ScheduleConfigResponse>(
     "/api/admin/schedule-config",
     fetcher
@@ -115,21 +120,134 @@ export function DashboardClient() {
     );
   }
 
+  const m = metricsData;
+  const statusLabels: Record<string, string> = {
+    pending: "Pendentes",
+    confirmed: "Confirmadas",
+    completed: "Realizadas",
+    cancelled: "Canceladas",
+  };
+
   return (
     <div className="container px-4 py-8">
-      <div className="mb-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Settings className="h-8 w-8 text-primary" />
           <div>
             <h1 className="text-3xl font-bold">Dashboard Administrativa</h1>
             <p className="mt-1 text-muted-foreground">
-              Configure os horários disponíveis para mentorias
+              Métricas das mentorias e configuração de horários
             </p>
           </div>
         </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/horarios" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            Ver horários de hoje
+          </Link>
+        </Button>
       </div>
 
-      {/* Estatísticas */}
+      {/* Métricas das mentorias */}
+      <div className="mb-8">
+        <h2 className="mb-4 text-xl font-semibold">Métricas das mentorias</h2>
+        {metricsLoading ? (
+          <p className="text-muted-foreground">Carregando métricas...</p>
+        ) : m ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Total de usuários</CardDescription>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl">{m.totalUsers}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {m.totalStudents} estudantes · {m.totalMentors} mentores
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Agendamentos totais</CardDescription>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl">{m.totalAppointments}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Últimos 30 dias: {m.appointmentsLast30Days}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Feedbacks / Avaliação</CardDescription>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl">{m.totalFeedbacks}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {m.averageRating != null ? (
+                    <span className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-current" /> Média {m.averageRating.toFixed(1)}/5
+                    </span>
+                  ) : (
+                    "Sem avaliações ainda"
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Realizadas (30 dias)</CardDescription>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl">{m.completedLast30Days}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Mentorias concluídas
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
+        {m && (
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Agendamentos por status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(m.appointmentsByStatus || {}).map(([status, count]) => (
+                    <Badge key={status} variant={status === "completed" ? "default" : "secondary"}>
+                      {statusLabels[status] ?? status}: {count}
+                    </Badge>
+                  ))}
+                  {(!m.appointmentsByStatus || Object.keys(m.appointmentsByStatus).length === 0) && (
+                    <span className="text-sm text-muted-foreground">Nenhum agendamento</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardDescription>Aguardando feedback do estudante</CardDescription>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-2xl">{m.appointmentsWithoutStudentFeedback}</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Mentorias sem feedback do estudante (máx. 2 por estudante para agendar nova)
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+
+      {/* Estatísticas de horários */}
+      <h2 className="mb-4 text-xl font-semibold">Configuração de horários</h2>
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">

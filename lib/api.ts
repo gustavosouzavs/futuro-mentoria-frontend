@@ -200,6 +200,23 @@ export const adminScheduleApi = {
     api.post<{ message: string; updatedAt: string }>("/api/admin/schedule-config", data),
 };
 
+// Admin - métricas
+export const adminMetricsApi = {
+  get: () =>
+    api.get<{
+      totalUsers: number;
+      totalStudents: number;
+      totalMentors: number;
+      totalAppointments: number;
+      totalFeedbacks: number;
+      appointmentsByStatus: Record<string, number>;
+      averageRating: number | null;
+      appointmentsLast30Days: number;
+      completedLast30Days: number;
+      appointmentsWithoutStudentFeedback: number;
+    }>("/api/admin/metrics"),
+};
+
 // Admin - usuários
 export const adminUsersApi = {
   list: (params?: { page?: number; limit?: number; search?: string; role?: UserType }) => {
@@ -245,6 +262,39 @@ export const adminUsersApi = {
       totalAgendamentos?: number;
       averageRating?: number;
     }>(`/api/admin/users/${id}`),
+  update: (
+    id: string,
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      role?: UserType;
+      grade?: string;
+      specialties?: string[];
+      status?: "active" | "inactive";
+      password?: string;
+    }
+  ) =>
+    api.patch<{ id: string; message: string }>(`/api/admin/users/${id}`, data),
+};
+
+// Admin - importação de estudantes (multipart)
+export const adminStudentsImportApi = {
+  import: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return client.request<{
+      message: string;
+      created: number;
+      skipped: number;
+      details: { created: Array<{ id: number; name: string; email: string }>; skipped: Array<{ row: number; reason: string }> };
+    }>({
+      method: "POST",
+      url: "/api/admin/students/import",
+      data: formData,
+      headers: { "Content-Type": undefined },
+    }).then((res) => res.data);
+  },
 };
 
 // Student appointments (rotas extras do backend, se existirem)

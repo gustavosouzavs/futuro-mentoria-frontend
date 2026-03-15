@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   BookOpen,
+  Clock,
   Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,11 @@ const mentorNavItems = [
     title: "Dashboard",
     href: "/mentor/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Horários",
+    href: "/horarios",
+    icon: Clock,
   },
   {
     title: "Mentorias",

@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { LogIn, Mail, Lock } from "lucide-react";
+import { LogIn, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { authApi } from "@/lib/api";
 
 const loginSchema = z.object({
@@ -44,16 +44,14 @@ export function LoginClient() {
   });
 
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const isSubmitting = form.formState.isSubmitting;
 
   const onSubmit = async (values: LoginFormValues) => {
     setApiError(null);
     try {
       const { user } = await authApi.login(values.email, values.password);
-      if (user.role === "admin") router.push("/admin/dashboard");
-      else if (user.role === "mentor") router.push("/mentor/dashboard");
-      else if (user.role === "student") router.push("/estudante/dashboard");
-      else router.push("/");
+      window.location.href = `/`;
     } catch (err) {
       setApiError(
         err instanceof Error ? err.message : "Erro ao entrar. Tente novamente.",
@@ -116,11 +114,27 @@ export function LoginClient() {
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-9"
+                          className="pl-9 pr-9"
                           {...field}
                         />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={
+                            showPassword ? "Ocultar senha" : "Mostrar senha"
+                          }
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </Button>
                       </div>
                     </FormControl>
                     <FormMessage />

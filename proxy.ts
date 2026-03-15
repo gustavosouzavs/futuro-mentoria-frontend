@@ -52,7 +52,6 @@ async function getCurrentUser(request: NextRequest): Promise<UserType | null> {
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const userRole = await getCurrentUser(request);
-  console.log(userRole)
 
   if (isPublicPath(pathname)) {
     if (userRole) {

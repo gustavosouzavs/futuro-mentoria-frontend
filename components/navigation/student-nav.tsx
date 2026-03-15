@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Calendar,
-  MessageSquare,
+  Clock,
   LogOut,
   Menu,
 } from "lucide-react";
@@ -24,6 +24,11 @@ const studentNavItems = [
     title: "Dashboard",
     href: "/estudante/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Horários",
+    href: "/horarios",
+    icon: Clock,
   },
   {
     title: "Agendar Mentoria",

@@ -92,11 +92,19 @@ export function DashboardClient() {
 
   return (
     <div className="container px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Dashboard do Estudante</h1>
-        <p className="mt-2 text-muted-foreground">
-          Gerencie suas mentorias agendadas
-        </p>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard do Estudante</h1>
+          <p className="mt-2 text-muted-foreground">
+            Gerencie suas mentorias agendadas
+          </p>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/horarios" className="gap-2">
+            <Clock className="h-4 w-4" />
+            Ver horários de hoje
+          </Link>
+        </Button>
       </div>
 
       {pendingItems > 0 && (

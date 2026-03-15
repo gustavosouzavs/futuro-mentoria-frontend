@@ -43,6 +43,12 @@ export function Header() {
             Sobre
           </Link>
           <Link
+            href="/horarios"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Horários
+          </Link>
+          <Link
             href="/estudante/agendar"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
