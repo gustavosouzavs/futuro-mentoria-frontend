@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { fetcher } from "@/lib/fetcher";
 import { parseBrazilDate } from "@/lib/date-brazil";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { studentAppointmentsApi } from "@/lib/api";
 
 interface Material {
   id: string;
@@ -48,11 +52,37 @@ interface AppointmentDetails {
 export function MentoriaDetailsClient() {
   const params = useParams();
   const appointmentId = params.id as string;
-  const { data: appointment, error: swrError, isLoading: loading } = useSWR<AppointmentDetails>(
+  const { data: appointment, error: swrError, isLoading: loading, mutate } = useSWR<AppointmentDetails>(
     appointmentId ? `/api/student/appointments/${appointmentId}` : null,
     fetcher
   );
   const error = swrError ? "Não foi possível carregar os detalhes da mentoria." : null;
+
+  const [preparationText, setPreparationText] = useState("");
+  const [savingPreparation, setSavingPreparation] = useState(false);
+
+  useEffect(() => {
+    if (!appointment) return;
+    setPreparationText((appointment.preparationItems ?? []).join("\n"));
+  }, [appointment]);
+
+  const handleSavePreparation = async () => {
+    setSavingPreparation(true);
+    try {
+      const items = preparationText
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      await studentAppointmentsApi.updatePreparationItems(appointmentId, items);
+      await mutate();
+      toast.success("Materiais atualizados com sucesso.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao salvar materiais.");
+    } finally {
+      setSavingPreparation(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -165,18 +195,25 @@ export function MentoriaDetailsClient() {
             </Card>
           )}
 
-          {appointment.preparationItems && appointment.preparationItems.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5" />
-                  Itens para Levar
-                </CardTitle>
-                <CardDescription>
-                  O mentor solicitou que você traga os seguintes itens
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Materiais e links do estudante
+              </CardTitle>
+              <CardDescription>
+                Cole links e/ou informações que serão enviados para o mentor (um por linha).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                value={preparationText}
+                onChange={(e) => setPreparationText(e.target.value)}
+                placeholder="Ex: https://... (link do material) (um por linha)"
+                rows={4}
+              />
+
+              {appointment.preparationItems && appointment.preparationItems.length > 0 ? (
                 <ul className="space-y-2">
                   {appointment.preparationItems.map((item, index) => (
                     <li key={index} className="flex items-start gap-2">
@@ -185,9 +222,29 @@ export function MentoriaDetailsClient() {
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Você ainda não enviou materiais/links.
+                </p>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={savingPreparation}
+                  onClick={() =>
+                    setPreparationText((appointment.preparationItems ?? []).join("\n"))
+                  }
+                >
+                  Cancelar
+                </Button>
+                <Button type="button" disabled={savingPreparation} onClick={handleSavePreparation}>
+                  {savingPreparation ? "Salvando..." : "Salvar materiais"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {appointment.materials.length > 0 && (
             <Card>

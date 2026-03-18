@@ -34,7 +34,7 @@ export function SalasClient() {
     }>
   >([]);
   const [loading, setLoading] = useState(true);
-  const [reserveRoomId, setReserveRoomId] = useState<number | "">("");
+  const [reserveRoomId, setReserveRoomId] = useState<string>("");
   const [reserveDate, setReserveDate] = useState("");
   const [reserveUntil, setReserveUntil] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -132,8 +132,8 @@ export function SalasClient() {
               <div className="grid gap-2">
                 <Label>Sala *</Label>
                 <Select
-                  value={reserveRoomId === "" ? "" : String(reserveRoomId)}
-                  onValueChange={(v) => setReserveRoomId(v === "" ? "" : Number(v))}
+                  value={reserveRoomId}
+                  onValueChange={setReserveRoomId}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a sala" />

@@ -73,6 +73,8 @@ export function DashboardClient() {
   const mentorId = user?.id ?? null;
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const availabilityKey = mentorId
     ? `/api/mentor/availability?mentorId=${encodeURIComponent(mentorId)}`
@@ -122,7 +124,9 @@ export function DashboardClient() {
     try {
       const res = await mentorAvailabilityApi.create({
         mentorId,
-        date: selectedDate.toISOString().split("T")[0]!,
+        date: `${selectedDate.getFullYear()}-${String(
+          selectedDate.getMonth() + 1,
+        ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`,
         times: newTimes,
         status: "available",
       });
@@ -217,7 +221,7 @@ export function DashboardClient() {
         <Button variant="outline" size="sm" asChild>
           <Link href="/horarios" className="gap-2">
             <Clock className="h-4 w-4" />
-            Ver horários de hoje
+                    Ver horários
           </Link>
         </Button>
       </div>
@@ -240,7 +244,7 @@ export function DashboardClient() {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   timeZone="America/Sao_Paulo"
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => (date ? date < today : false)}
                   className="rounded-md border"
                 />
               </div>

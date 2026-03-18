@@ -103,12 +103,6 @@ export function LoginClient() {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel>Senha</FormLabel>
-                      <Link
-                        href="/forgot-password"
-                        className="text-sm text-primary hover:underline"
-                      >
-                        Esqueceu a senha?
-                      </Link>
                     </div>
                     <FormControl>
                       <div className="relative">
@@ -164,24 +158,6 @@ export function LoginClient() {
             >
               Criar conta
             </Link>
-          </div>
-
-          <div className="mt-4">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Ou continue como
-                </span>
-              </div>
-            </div>
-            <div className="mt-4 grid gap-2">
-              <Button variant="outline" asChild>
-                <Link href="/mentor/dashboard">Acessar como Mentor</Link>
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>

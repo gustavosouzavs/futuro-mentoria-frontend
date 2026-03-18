@@ -7,7 +7,6 @@ import useSWR from "swr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
@@ -23,7 +22,6 @@ import {
   Upload,
   Save,
   ArrowLeft,
-  Plus,
   X,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -61,34 +59,19 @@ export function MentoriaDetailsClient() {
     fetcher
   );
   const [message, setMessage] = useState("");
-  const [preparationItems, setPreparationItems] = useState<string[]>([]);
-  const [newItem, setNewItem] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (appointment) {
       setMessage(appointment.message || "");
-      setPreparationItems(appointment.preparationItems || []);
     }
   }, [appointment]);
-
-  const handleAddPreparationItem = () => {
-    if (newItem.trim()) {
-      setPreparationItems([...preparationItems, newItem.trim()]);
-      setNewItem("");
-    }
-  };
-
-  const handleRemovePreparationItem = (index: number) => {
-    setPreparationItems(preparationItems.filter((_, i) => i !== index));
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await mentorAppointmentsApi.update(appointmentId, {
         message: message || undefined,
-        preparationItems: preparationItems.length > 0 ? preparationItems : undefined,
       });
       await mutate();
       toast.success("Alterações salvas com sucesso!");
@@ -211,7 +194,7 @@ export function MentoriaDetailsClient() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Mensagem para o Estudante
+                Mensagem do Mentor (para o estudante)
               </CardTitle>
               <CardDescription>
                 Envie instruções, orientações ou informações importantes
@@ -229,46 +212,25 @@ export function MentoriaDetailsClient() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Itens de Preparação</CardTitle>
+              <CardTitle>Materiais e links do estudante</CardTitle>
               <CardDescription>
-                Liste os itens que o estudante deve trazer para a mentoria
+                Links e materiais enviados pelo estudante para a mentoria
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ex: Caderno de anotações, lista de exercícios..."
-                  value={newItem}
-                  onChange={(e) => setNewItem(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddPreparationItem();
-                    }
-                  }}
-                />
-                <Button onClick={handleAddPreparationItem} type="button">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {preparationItems.length > 0 && (
-                <div className="space-y-2">
-                  {preparationItems.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
+            <CardContent>
+              {appointment.preparationItems && appointment.preparationItems.length > 0 ? (
+                <ul className="space-y-2">
+                  {appointment.preparationItems.map((item, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                       <span className="text-sm">{item}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemovePreparationItem(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  O estudante ainda não enviou materiais/links.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -341,7 +303,7 @@ export function MentoriaDetailsClient() {
                 </Button>
               )}
               <Button variant="outline" className="w-full" asChild>
-                <Link href={`mailto:${appointment.studentEmail}`}>
+                <Link href={`mailto:${encodeURIComponent(appointment.studentEmail)}`}>
                   Contatar Estudante
                 </Link>
               </Button>

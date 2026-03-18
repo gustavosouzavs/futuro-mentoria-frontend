@@ -82,6 +82,7 @@ const agendarSchema = z
     grade: z.string().min(1, "Selecione a série"),
     subject: z.string().min(1, "Selecione a área do ENEM"),
     message: z.string().optional(),
+    preparationItemsText: z.string().optional(),
   })
   .refine((data) => data.date !== undefined, {
     message: "Selecione a data da mentoria",
@@ -110,6 +111,7 @@ export function AgendarClient() {
       grade: "",
       subject: "",
       message: "",
+      preparationItemsText: "",
     },
   });
 
@@ -154,19 +156,33 @@ export function AgendarClient() {
     : [];
 
   const isSubmitting = form.formState.isSubmitting;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const onSubmit = async (values: AgendarFormValues) => {
     if (!values.date) return;
     try {
+      const preparationItems = values.preparationItemsText
+        ? values.preparationItemsText
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const dateOnly = `${values.date.getFullYear()}-${String(
+        values.date.getMonth() + 1,
+      ).padStart(2, "0")}-${String(values.date.getDate()).padStart(2, "0")}`;
+
       await appointmentsApi.create({
         studentName: values.name,
         studentEmail: values.email,
         grade: values.grade,
         mentorId: values.mentor,
         subject: values.subject,
-        date: values.date.toISOString(),
+        date: dateOnly,
         time: values.time,
         message: values.message || undefined,
+        preparationItems,
         studentId: user?.id ?? 0,
       });
       await mutate();
@@ -226,7 +242,7 @@ export function AgendarClient() {
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={(d) => d < new Date()}
+                              disabled={(d) => (d ? d < today : false)}
                               className="rounded-md border"
                             />
                           </div>
@@ -460,6 +476,24 @@ export function AgendarClient() {
                       <FormControl>
                         <Textarea
                           placeholder="Descreva brevemente o que você gostaria de trabalhar na mentoria..."
+                          rows={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="preparationItemsText"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Materiais e links (Opcional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Cole links e/ou informações para o mentor. Um por linha."
                           rows={4}
                           {...field}
                         />

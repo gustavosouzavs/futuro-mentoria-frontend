@@ -99,6 +99,7 @@ export const appointmentsApi = {
     date: string;
     time: string;
     message?: string;
+    preparationItems?: string[];
     studentId: number | string;
   }) =>
     api.post<{ id: string; status: string; createdAt: string }>("/api/appointments", data),
@@ -328,6 +329,10 @@ export const studentAppointmentsApi = {
       materials: Array<{ id: string; name: string; url: string; type: string; uploadedAt: string }>;
       hasFeedback: boolean;
     }>(`/api/student/appointments/${id}`),
+  updatePreparationItems: (id: string, preparationItems: string[]) =>
+    api.patch<{ message: string }>(`/api/student/appointments/${id}/preparation-items`, {
+      preparationItems,
+    }),
 };
 
 // Mentor appointments (rotas extras do backend, se existirem)

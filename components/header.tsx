@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserMenu } from "@/components/navigation/user-menu";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { usePathname } from "next/navigation";
 
 const DASHBOARD_HREF = {
   student: "/estudante/dashboard",
@@ -15,6 +16,10 @@ const DASHBOARD_HREF = {
 
 export function Header() {
   const { user, isLoading } = useCurrentUser();
+  const pathname = usePathname();
+
+  const isAuthPage =
+    pathname === "/login" || pathname === "/register" || pathname === "/forgot-password";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -29,7 +34,8 @@ export function Header() {
           />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
+        {!isAuthPage && (
+          <nav className="hidden md:flex items-center gap-6">
           <Link
             href="/"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -37,17 +43,19 @@ export function Header() {
             Início
           </Link>
           <Link
-            href="#sobre"
+            href="/#sobre"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Sobre
           </Link>
-          <Link
-            href="/horarios"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Horários
-          </Link>
+          {user && (
+            <Link
+              href="/horarios"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Horários
+            </Link>
+          )}
           <Link
             href="/estudante/agendar"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -55,6 +63,7 @@ export function Header() {
             Agendar
           </Link>
         </nav>
+        )}
 
         <div className="flex items-center gap-2 md:gap-4">
           {isLoading ? (

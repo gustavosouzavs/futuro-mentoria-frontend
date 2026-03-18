@@ -35,10 +35,18 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#sobre"
+                  href="/#sobre"
                   className="text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Sobre
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/horarios"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Horários
                 </Link>
               </li>
               <li>
@@ -57,7 +65,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="#"
+                  href="/#sobre"
                   className="text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Como Funciona
@@ -65,7 +73,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/#sobre"
                   className="text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Perguntas Frequentes
@@ -73,7 +81,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="mailto:contato@futuromentoria.com"
                   className="text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Contato
