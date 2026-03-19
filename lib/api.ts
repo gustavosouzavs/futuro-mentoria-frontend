@@ -78,6 +78,11 @@ export const authApi = {
   logout: () => api.post<{ message: string }>("/api/auth/logout"),
   me: () =>
     api.get<{ user: { id: string; name: string; email: string; role: UserType } }>("/api/auth/me"),
+  changePassword: (data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => api.patch<{ message: string }>("/api/auth/change-password", data),
 };
 
 // Mentores (público)
@@ -357,6 +362,7 @@ export const mentorAppointmentsApi = {
       id: string;
       studentName: string;
       studentEmail: string;
+      studentPhone?: string;
       subject: string;
       date: string;
       time: string;
@@ -364,6 +370,7 @@ export const mentorAppointmentsApi = {
       message?: string;
       preparationItems?: string[];
       materials: Array<{ id: string; name: string; url: string; type: string; uploadedAt: string }>;
+      hasFeedback?: boolean;
     }>(`/api/mentor/appointments/${id}`),
   update: (
     id: string,
@@ -396,6 +403,7 @@ export type RoomReservationDto = {
   mentorId: number;
   mentorName: string;
   date: string;
+  reservedFrom: string | null;
   reservedUntil: string | null;
 };
 
@@ -432,16 +440,18 @@ export const mentorRoomsApi = {
         roomName: string;
         roomCode: string | null;
         date: string;
+        reservedFrom: string | null;
         reservedUntil: string | null;
       }>;
     }>(`/api/mentor/room-reservations${q ? `?${q}` : ""}`);
   },
-  reserve: (data: { roomId: number; date: string; reservedUntil?: string }) =>
+  reserve: (data: { roomId: number; date: string; reservedFrom: string; reservedUntil: string }) =>
     api.post<{
       id: number;
       roomId: number;
       roomName: string;
       date: string;
+      reservedFrom: string | null;
       reservedUntil: string | null;
       message: string;
     }>("/api/mentor/room-reservations", data),

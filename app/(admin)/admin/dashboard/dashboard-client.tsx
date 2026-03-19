@@ -141,7 +141,7 @@ export function DashboardClient() {
           </div>
         </div>
         <Button variant="outline" size="sm" asChild>
-          <Link href="/horarios" className="gap-2">
+          <Link href="/admin/horarios" className="gap-2">
             <Calendar className="h-4 w-4" />
             Ver horários de hoje
           </Link>

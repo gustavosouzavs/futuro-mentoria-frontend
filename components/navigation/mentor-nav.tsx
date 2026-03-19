@@ -26,7 +26,7 @@ const mentorNavItems = [
   },
   {
     title: "Horários",
-    href: "/horarios",
+    href: "/mentor/horarios",
     icon: Clock,
   },
   {

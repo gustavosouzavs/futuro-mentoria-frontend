@@ -1,14 +1,22 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { toast } from "sonner";
@@ -22,12 +30,14 @@ import {
   Upload,
   Save,
   ArrowLeft,
-  X,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { fetcher } from "@/lib/fetcher";
 import { parseBrazilDate } from "@/lib/date-brazil";
 import { mentorAppointmentsApi } from "@/lib/api";
+import { resolveMaterialUrl } from "@/lib/material-url";
 
 interface Material {
   id: string;
@@ -41,6 +51,7 @@ interface AppointmentDetails {
   id: string;
   studentName: string;
   studentEmail: string;
+  studentPhone?: string;
   subject: string;
   date: string;
   time: string;
@@ -48,10 +59,12 @@ interface AppointmentDetails {
   message?: string;
   preparationItems?: string[];
   materials: Material[];
+  hasFeedback?: boolean;
 }
 
 export function MentoriaDetailsClient() {
   const params = useParams();
+  const router = useRouter();
   const appointmentId = params.id as string;
 
   const { data: appointment, isLoading: loading, mutate } = useSWR<AppointmentDetails>(
@@ -60,6 +73,7 @@ export function MentoriaDetailsClient() {
   );
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [statusLoading, setStatusLoading] = useState<null | "confirm" | "complete">(null);
 
   useEffect(() => {
     if (appointment) {
@@ -67,11 +81,31 @@ export function MentoriaDetailsClient() {
     }
   }, [appointment]);
 
+  const sessionEnded = useMemo(() => {
+    if (!appointment?.date) return false;
+    const startMs = new Date(appointment.date).getTime();
+    if (Number.isNaN(startMs)) return false;
+    return Date.now() > startMs + 30 * 60 * 1000;
+  }, [appointment?.date]);
+
+  const copyText = async (label: string, text: string) => {
+    if (!text) {
+      toast.error("Nada para copiar.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copiado para a área de transferência.`);
+    } catch {
+      toast.error("Não foi possível copiar. Copie manualmente.");
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await mentorAppointmentsApi.update(appointmentId, {
-        message: message || undefined,
+        message: message.trim(),
       });
       await mutate();
       toast.success("Alterações salvas com sucesso!");
@@ -82,9 +116,36 @@ export function MentoriaDetailsClient() {
     }
   };
 
+  const handleConfirm = async () => {
+    setStatusLoading("confirm");
+    try {
+      await mentorAppointmentsApi.update(appointmentId, { status: "confirmed" });
+      await mutate();
+      toast.success("Mentoria confirmada.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao confirmar.");
+    } finally {
+      setStatusLoading(null);
+    }
+  };
+
+  const handleEncerrarEAvaliar = async () => {
+    setStatusLoading("complete");
+    try {
+      await mentorAppointmentsApi.update(appointmentId, { status: "completed" });
+      await mutate();
+      toast.success("Mentoria encerrada. Redirecionando para o feedback…");
+      router.push(`/mentor/mentorias/${appointmentId}/feedback`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao encerrar.");
+    } finally {
+      setStatusLoading(null);
+    }
+  };
+
   const handleAddMaterial = () => {
     const name = prompt("Nome do material:");
-    const url = prompt("URL ou link:");
+    const url = prompt("URL ou link (use https://... ou caminho absoluto do arquivo):");
     const type = prompt("Tipo: pdf, doc, link ou other", "link") as "pdf" | "doc" | "link" | "other";
     if (!name || !url) return;
     mentorAppointmentsApi
@@ -197,7 +258,8 @@ export function MentoriaDetailsClient() {
                 Mensagem do Mentor (para o estudante)
               </CardTitle>
               <CardDescription>
-                Envie instruções, orientações ou informações importantes
+                Envie instruções, orientações ou informações importantes. Use &quot;Salvar
+                alterações&quot; abaixo.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -242,7 +304,8 @@ export function MentoriaDetailsClient() {
                 Materiais de Estudo
               </CardTitle>
               <CardDescription>
-                Compartilhe arquivos e links com o estudante
+                Compartilhe links (https://…) ou URLs de arquivos do sistema. O estudante abre pelo
+                botão Baixar/Abrir. Se preferir, envie arquivos pesados por WhatsApp ou e-mail.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -269,8 +332,15 @@ export function MentoriaDetailsClient() {
                           </p>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon">
-                        <X className="h-4 w-4" />
+                      <Button variant="outline" size="sm" asChild>
+                        <a
+                          href={resolveMaterialUrl(material.url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          Abrir
+                        </a>
                       </Button>
                     </div>
                   ))}
@@ -283,7 +353,7 @@ export function MentoriaDetailsClient() {
             </CardContent>
           </Card>
 
-          <Button onClick={handleSave} className="w-full" disabled={isSaving}>
+          <Button onClick={() => void handleSave()} className="w-full" disabled={isSaving}>
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Salvando..." : "Salvar Alterações"}
           </Button>
@@ -295,18 +365,84 @@ export function MentoriaDetailsClient() {
               <CardTitle>Ações</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {appointment.status === "completed" && (
+              {appointment.status === "pending" && (
+                <Button
+                  className="w-full"
+                  disabled={!!statusLoading}
+                  onClick={() => void handleConfirm()}
+                >
+                  {statusLoading === "confirm" ? "Confirmando..." : "Confirmar mentoria"}
+                </Button>
+              )}
+              {appointment.status === "confirmed" && sessionEnded && (
+                <Button
+                  className="w-full"
+                  variant="secondary"
+                  disabled={!!statusLoading}
+                  onClick={() => void handleEncerrarEAvaliar()}
+                >
+                  {statusLoading === "complete" ? "Encerrando..." : "Encerrar e avaliar"}
+                </Button>
+              )}
+              {appointment.status === "completed" && !appointment.hasFeedback && (
                 <Button className="w-full" asChild>
                   <Link href={`/mentor/mentorias/${appointment.id}/feedback`}>
                     Dar Feedback
                   </Link>
                 </Button>
               )}
-              <Button variant="outline" className="w-full" asChild>
-                <Link href={`mailto:${encodeURIComponent(appointment.studentEmail)}`}>
-                  Contatar Estudante
-                </Link>
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    Contatar estudante
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Contato do estudante</DialogTitle>
+                    <DialogDescription>
+                      Copie e-mail ou telefone e use seu app de e-mail ou WhatsApp.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-2">
+                    <div className="space-y-2">
+                      <Label>E-mail</Label>
+                      <div className="flex gap-2">
+                        <p className="text-sm flex-1 break-all rounded-md border bg-muted/50 px-3 py-2">
+                          {appointment.studentEmail || "—"}
+                        </p>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          onClick={() => void copyText("E-mail", appointment.studentEmail)}
+                          disabled={!appointment.studentEmail}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {appointment.studentPhone ? (
+                      <div className="space-y-2">
+                        <Label>Telefone</Label>
+                        <div className="flex gap-2">
+                          <p className="text-sm flex-1 break-all rounded-md border bg-muted/50 px-3 py-2">
+                            {appointment.studentPhone}
+                          </p>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            onClick={() => void copyText("Telefone", appointment.studentPhone!)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>

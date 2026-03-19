@@ -100,7 +100,7 @@ export function DashboardClient() {
           </p>
         </div>
         <Button variant="outline" size="sm" asChild>
-          <Link href="/horarios" className="gap-2">
+          <Link href="/estudante/horarios" className="gap-2">
             <Clock className="h-4 w-4" />
             Ver horários de hoje
           </Link>

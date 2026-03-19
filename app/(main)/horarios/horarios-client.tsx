@@ -26,6 +26,7 @@ export function HorariosClient() {
       mentorId: number;
       mentorName: string;
       date: string;
+      reservedFrom: string | null;
       reservedUntil: string | null;
     }>;
   }>(
@@ -79,7 +80,7 @@ export function HorariosClient() {
         ) : (
           <div className="space-y-4">
             {reservations.map((r) => (
-              <Card key={`${r.roomId}-${r.date}`}>
+              <Card key={`${r.roomId}-${r.mentorId}-${r.reservedFrom ?? ""}-${r.reservedUntil ?? ""}`}>
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <DoorOpen className="h-5 w-5" />
@@ -96,12 +97,17 @@ export function HorariosClient() {
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>{r.mentorName}</span>
                   </div>
-                  {r.reservedUntil && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      até {r.reservedUntil}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    {r.reservedFrom || r.reservedUntil ? (
+                      <>
+                        {r.reservedFrom ? `${r.reservedFrom} ` : "— "}
+                        até {r.reservedUntil ?? "—"}
+                      </>
+                    ) : (
+                      <>Reserva do dia (horário amplo)</>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}

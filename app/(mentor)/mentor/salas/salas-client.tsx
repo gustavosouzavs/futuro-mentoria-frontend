@@ -30,13 +30,15 @@ export function SalasClient() {
       roomName: string;
       roomCode: string | null;
       date: string;
+      reservedFrom: string | null;
       reservedUntil: string | null;
     }>
   >([]);
   const [loading, setLoading] = useState(true);
   const [reserveRoomId, setReserveRoomId] = useState<string>("");
   const [reserveDate, setReserveDate] = useState("");
-  const [reserveUntil, setReserveUntil] = useState("");
+  const [reserveFrom, setReserveFrom] = useState("14:00");
+  const [reserveUntil, setReserveUntil] = useState("17:00");
   const [submitting, setSubmitting] = useState(false);
 
   const loadData = async () => {
@@ -65,17 +67,27 @@ export function SalasClient() {
       toast.error("Selecione a sala e a data.");
       return;
     }
+    if (!reserveFrom || !reserveUntil) {
+      toast.error("Informe horário de início e fim.");
+      return;
+    }
+    if (reserveFrom >= reserveUntil) {
+      toast.error("O horário inicial deve ser antes do horário final.");
+      return;
+    }
     setSubmitting(true);
     try {
       await mentorRoomsApi.reserve({
         roomId: Number(reserveRoomId),
         date: reserveDate,
-        reservedUntil: reserveUntil || undefined,
+        reservedFrom: reserveFrom,
+        reservedUntil: reserveUntil,
       });
       toast.success("Sala reservada com sucesso.");
       setReserveRoomId("");
       setReserveDate("");
-      setReserveUntil("");
+      setReserveFrom("14:00");
+      setReserveUntil("17:00");
       loadData();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao reservar sala.");
@@ -113,7 +125,8 @@ export function SalasClient() {
           <div>
             <h1 className="text-3xl font-bold">Reservar sala</h1>
             <p className="mt-1 text-muted-foreground">
-              Escolha uma sala e a data para suas mentorias
+              Defina início e fim da reserva. Outros mentores podem usar a mesma sala no mesmo dia em
+              horários que não conflitem.
             </p>
           </div>
         </div>
@@ -124,7 +137,8 @@ export function SalasClient() {
           <CardHeader>
             <CardTitle>Nova reserva</CardTitle>
             <CardDescription>
-              Uma sala só pode ser reservada por um mentor por dia
+              Apenas o intervalo escolhido fica indisponível para outros mentores; após o horário
+              final a sala pode ser reservada novamente.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -159,21 +173,33 @@ export function SalasClient() {
                   required
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="until">Reservado até (horário)</Label>
-                <Select
-                  value={reserveUntil}
-                  onValueChange={setReserveUntil}
-                >
-                  <SelectTrigger id="until">
-                    <SelectValue placeholder="Opcional" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIME_OPTIONS.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="from">Início *</Label>
+                  <Select value={reserveFrom} onValueChange={setReserveFrom}>
+                    <SelectTrigger id="from">
+                      <SelectValue placeholder="Horário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIME_OPTIONS.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="until">Fim *</Label>
+                  <Select value={reserveUntil} onValueChange={setReserveUntil}>
+                    <SelectTrigger id="until">
+                      <SelectValue placeholder="Horário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIME_OPTIONS.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Button type="submit" disabled={submitting}>
                 {submitting ? "Reservando..." : "Reservar sala"}
@@ -211,8 +237,11 @@ export function SalasClient() {
                             day: "numeric",
                             month: "short",
                           })}
-                          {r.reservedUntil && (
-                            <> até {r.reservedUntil}</>
+                          {(r.reservedFrom || r.reservedUntil) && (
+                            <>
+                              {" "}
+                              · {r.reservedFrom ?? "—"} até {r.reservedUntil ?? "—"}
+                            </>
                           )}
                         </p>
                       </div>

@@ -32,20 +32,20 @@ type NavItem = { title: string; href: string; icon: LucideIcon };
 
 const studentNavItems: NavItem[] = [
   { title: "Dashboard", href: "/estudante/dashboard", icon: LayoutDashboard },
-  { title: "Horários", href: "/horarios", icon: Clock },
+  { title: "Horários", href: "/estudante/horarios", icon: Clock },
   { title: "Agendar Mentoria", href: "/estudante/agendar", icon: Calendar },
 ];
 
 const mentorNavItems: NavItem[] = [
   { title: "Dashboard", href: "/mentor/dashboard", icon: LayoutDashboard },
-  { title: "Horários", href: "/horarios", icon: Clock },
+  { title: "Horários", href: "/mentor/horarios", icon: Clock },
   { title: "Mentorias", href: "/mentor/mentorias", icon: BookOpen },
   { title: "Reservar Sala", href: "/mentor/salas", icon: DoorOpen },
 ];
 
 const adminNavItems: NavItem[] = [
   { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { title: "Horários", href: "/horarios", icon: Clock },
+  { title: "Horários", href: "/admin/horarios", icon: Clock },
   { title: "Usuários", href: "/admin/users", icon: Users },
   { title: "Salas", href: "/admin/rooms", icon: DoorOpen },
   { title: "Configurações", href: "/admin/settings", icon: Settings },

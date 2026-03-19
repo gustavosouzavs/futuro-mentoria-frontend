@@ -27,12 +27,12 @@ const studentNavItems = [
   },
   {
     title: "Horários",
-    href: "/horarios",
+    href: "/estudante/horarios",
     icon: Clock,
   },
   {
     title: "Agendar Mentoria",
-    href: "/agendar",
+    href: "/estudante/agendar",
     icon: Calendar,
   },
 ];

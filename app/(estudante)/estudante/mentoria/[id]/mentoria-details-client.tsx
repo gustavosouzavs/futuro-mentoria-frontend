@@ -26,6 +26,7 @@ import { parseBrazilDate } from "@/lib/date-brazil";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { studentAppointmentsApi } from "@/lib/api";
+import { resolveMaterialUrl } from "@/lib/material-url";
 
 interface Material {
   id: string;
@@ -277,9 +278,13 @@ export function MentoriaDetailsClient() {
                         </div>
                       </div>
                       <Button variant="outline" size="sm" asChild>
-                        <a href={material.url} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={resolveMaterialUrl(material.url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Download className="mr-2 h-4 w-4" />
-                          Baixar
+                          Baixar / Abrir
                         </a>
                       </Button>
                     </div>

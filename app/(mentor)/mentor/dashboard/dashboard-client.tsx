@@ -86,6 +86,10 @@ export function DashboardClient() {
   const availabilities = data ? mapAvailabilities(data) : [];
   const loading = isLoading;
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const visibleAvailabilities = availabilities.filter((a) => a.date >= todayStart);
+
   const handleTimeToggle = (time: string) => {
     setSelectedTimes((prev) =>
       prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time],
@@ -169,7 +173,7 @@ export function DashboardClient() {
     }
   };
 
-  const groupedAvailabilities = availabilities.reduce(
+  const groupedAvailabilities = visibleAvailabilities.reduce(
     (acc, avail) => {
       const dateKey = format(avail.date, "yyyy-MM-dd");
       if (!acc[dateKey]) {
@@ -219,9 +223,9 @@ export function DashboardClient() {
           </p>
         </div>
         <Button variant="outline" size="sm" asChild>
-          <Link href="/horarios" className="gap-2">
+          <Link href="/mentor/horarios" className="gap-2">
             <Clock className="h-4 w-4" />
-                    Ver horários
+            Ver horários
           </Link>
         </Button>
       </div>
@@ -311,13 +315,13 @@ export function DashboardClient() {
                 <span className="text-muted-foreground">
                   Total de Horários:
                 </span>
-                <span className="font-semibold">{availabilities.length}</span>
+                <span className="font-semibold">{visibleAvailabilities.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Disponíveis:</span>
                 <span className="font-semibold text-green-600">
                   {
-                    availabilities.filter((a) => a.status === "available")
+                    visibleAvailabilities.filter((a) => a.status === "available")
                       .length
                   }
                 </span>
@@ -325,14 +329,14 @@ export function DashboardClient() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Agendados:</span>
                 <span className="font-semibold text-blue-600">
-                  {availabilities.filter((a) => a.status === "booked").length}
+                  {visibleAvailabilities.filter((a) => a.status === "booked").length}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Indisponíveis:</span>
                 <span className="font-semibold text-gray-600">
                   {
-                    availabilities.filter((a) => a.status === "unavailable")
+                    visibleAvailabilities.filter((a) => a.status === "unavailable")
                       .length
                   }
                 </span>
@@ -346,11 +350,11 @@ export function DashboardClient() {
             <CardHeader>
               <CardTitle>Horários Cadastrados</CardTitle>
               <CardDescription>
-                Gerencie seus horários disponíveis e agendados
+                Apenas datas a partir de hoje. Horários antigos não aparecem aqui.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {availabilities.length === 0 ? (
+              {visibleAvailabilities.length === 0 ? (
                 <div className="py-12 text-center">
                   <CalendarIcon className="mx-auto h-12 w-12 text-muted-foreground" />
                   <p className="mt-4 text-muted-foreground">

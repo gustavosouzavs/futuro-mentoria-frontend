@@ -28,7 +28,7 @@ const adminNavItems = [
   },
   {
     title: "Horários",
-    href: "/horarios",
+    href: "/admin/horarios",
     icon: Clock,
   },
   {

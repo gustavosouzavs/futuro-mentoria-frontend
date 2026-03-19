@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,12 @@ const DASHBOARD_LABEL: Record<UserType, string> = {
   student: "Dashboard do Estudante",
   mentor: "Dashboard do Mentor",
   admin: "Dashboard Admin",
+};
+
+const PROFILE_HREF: Record<UserType, string> = {
+  student: "/estudante/perfil",
+  mentor: "/mentor/perfil",
+  admin: "/admin/perfil",
 };
 
 function initials(name: string): string {
@@ -88,6 +94,13 @@ export function UserMenu({ user, align = "end" }: UserMenuProps) {
           <Link href={dashboardHref} className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4" />
             {dashboardLabel}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={PROFILE_HREF[user.role]} className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Perfil
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
