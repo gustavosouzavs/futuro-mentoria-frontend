@@ -31,7 +31,8 @@ interface ScheduleConfigResponse {
 
 const timeSlots = [
   "14:00", "14:30", "15:00", "15:30",
-  "16:00", "16:30", "17:00", "17:30", "18:00"
+  "16:00", "16:30", "17:00", "17:30", "18:00",
+  "18:30", "19:00", "19:30", "20:00",
 ];
 
 const daysOfWeek = [
@@ -66,7 +67,16 @@ export function DashboardClient() {
 
   useEffect(() => {
     if (data?.days?.length) {
-      setScheduleConfig(data.days as DayConfig[]);
+      // Garante que timeSlots mais novos (até 20:00) existam no config atual
+      // para permitir que o admin ative/desative sem depender de re-semeadura.
+      const merged = (data.days as DayConfig[]).map((day) => ({
+        ...day,
+        timeSlots: timeSlots.map((time) => {
+          const existing = day.timeSlots.find((s) => s.time === time);
+          return existing ?? { id: `${day.day}-${time}`, time, enabled: false };
+        }),
+      }));
+      setScheduleConfig(merged);
     }
   }, [data]);
 

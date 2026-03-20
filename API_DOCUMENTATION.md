@@ -465,7 +465,7 @@ Esta documentação descreve os dados que serão enviados e recebidos por cada p
 - Senha deve ter no mínimo 6 caracteres
 - Rating deve estar entre 1 e 5
 - Datas não podem ser no passado (exceto para histórico)
-- Horários devem estar dentro do intervalo configurado (14:00 - 18:00)
+- Horários devem estar dentro do intervalo configurado (14:00 - 20:00)
 
 ---
 
@@ -502,9 +502,9 @@ As áreas disponíveis para agendamento são:
 
 ## ⏰ Horários Padrão
 
-- **Período:** Tarde (14:00 - 18:00)
+- **Período:** Tarde (14:00 - 20:00)
 - **Duração:** 30 minutos por sessão
-- **Intervalos:** 14:00, 14:30, 15:00, 15:30, 16:00, 16:30, 17:00, 17:30, 18:00
+- **Intervalos:** 14:00, 14:30, 15:00, 15:30, 16:00, 16:30, 17:00, 17:30, 18:00, 18:30, 19:00, 19:30, 20:00
 - **Dias da Semana:** Segunda a Sexta (configurável pelo admin)
 
 ---

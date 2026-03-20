@@ -206,6 +206,18 @@ export const adminScheduleApi = {
     api.post<{ message: string; updatedAt: string }>("/api/admin/schedule-config", data),
 };
 
+// Mentor - leitura das configurações que o admin bloqueou/permitted
+export const mentorScheduleApi = {
+  get: () =>
+    api.get<{
+      days: Array<{
+        day: string;
+        enabled: boolean;
+        timeSlots: Array<{ id: string; time: string; enabled: boolean }>;
+      }>;
+    }>("/api/mentor/schedule-config"),
+};
+
 // Admin - métricas
 export const adminMetricsApi = {
   get: () =>

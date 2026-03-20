@@ -47,6 +47,14 @@ interface AvailabilityResponse {
   }>;
 }
 
+interface ScheduleConfigResponse {
+  days: Array<{
+    day: string;
+    enabled: boolean;
+    timeSlots: Array<{ id: string; time: string; enabled: boolean }>;
+  }>;
+}
+
 function mapAvailabilities(res: AvailabilityResponse): AvailabilitySlot[] {
   return (res.availabilities ?? []).map((a) => ({
     id: a.id,
@@ -66,6 +74,10 @@ const timeSlots = [
   "17:00",
   "17:30",
   "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00",
 ];
 
 export function DashboardClient() {
@@ -86,21 +98,78 @@ export function DashboardClient() {
   const availabilities = data ? mapAvailabilities(data) : [];
   const loading = isLoading;
 
+  const scheduleConfigKey = mentorId ? `/api/mentor/schedule-config` : null;
+  const { data: scheduleConfigData } = useSWR<ScheduleConfigResponse>(
+    scheduleConfigKey,
+    fetcher,
+  );
+
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const visibleAvailabilities = availabilities.filter((a) => a.date >= todayStart);
 
+  const allowedTimesForSelectedDate = (() => {
+    if (!selectedDate) return [];
+    const scheduleDays = scheduleConfigData?.days ?? [];
+
+    // Se não houver config no backend, mantém comportamento atual (libera tudo).
+    if (!scheduleDays.length) return timeSlots;
+
+    const jsDay = selectedDate.getDay(); // 0=domingo ... 1=segunda ... 6=sábado
+    const dayKey =
+      jsDay === 1
+        ? "monday"
+        : jsDay === 2
+          ? "tuesday"
+          : jsDay === 3
+            ? "wednesday"
+            : jsDay === 4
+              ? "thursday"
+              : jsDay === 5
+                ? "friday"
+                : null;
+
+    if (!dayKey) return [];
+
+    const dayCfg = scheduleDays.find((d) => d.day === dayKey);
+    if (!dayCfg) return timeSlots; // config existe, mas dia não encontrado: permite tudo
+    if (!dayCfg.enabled) return [];
+    return (dayCfg.timeSlots ?? [])
+      .filter((s) => s.enabled)
+      .map((s) => s.time)
+      .filter((t) => timeSlots.includes(t));
+  })();
+
+  const allowedTimesKey = allowedTimesForSelectedDate.join('|');
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setSelectedTimes([]);
+      return;
+    }
+    if (!allowedTimesForSelectedDate.length) {
+      setSelectedTimes([]);
+      return;
+    }
+    setSelectedTimes((prev) =>
+      prev.filter((t) => allowedTimesForSelectedDate.includes(t)),
+    );
+  }, [selectedDate, allowedTimesKey]);  
+
   const handleTimeToggle = (time: string) => {
+    if (!allowedTimesForSelectedDate.includes(time)) return;
     setSelectedTimes((prev) =>
       prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time],
     );
   };
 
   const handleSelectAll = () => {
-    if (selectedTimes.length === timeSlots.length) {
+    const allowed = allowedTimesForSelectedDate;
+    if (!allowed.length) return;
+    if (selectedTimes.length === allowed.length) {
       setSelectedTimes([]);
     } else {
-      setSelectedTimes([...timeSlots]);
+      setSelectedTimes([...allowed]);
     }
   };
 
@@ -261,9 +330,10 @@ export function DashboardClient() {
                     variant="ghost"
                     size="sm"
                     onClick={handleSelectAll}
+                    disabled={!selectedDate || allowedTimesForSelectedDate.length === 0}
                     className="h-auto py-1 text-xs"
                   >
-                    {selectedTimes.length === timeSlots.length
+                    {selectedTimes.length === allowedTimesForSelectedDate.length
                       ? "Desmarcar todos"
                       : "Selecionar todos"}
                   </Button>
@@ -275,7 +345,7 @@ export function DashboardClient() {
                         id={`time-${time}`}
                         checked={selectedTimes.includes(time)}
                         onCheckedChange={() => handleTimeToggle(time)}
-                        disabled={!selectedDate}
+                        disabled={!selectedDate || !allowedTimesForSelectedDate.includes(time)}
                       />
                       <Label
                         htmlFor={`time-${time}`}
