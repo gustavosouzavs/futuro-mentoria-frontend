@@ -46,6 +46,7 @@ const mentorNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
   { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { title: "Horários", href: "/admin/horarios", icon: Clock },
+  { title: "Mentorias", href: "/admin/mentorias", icon: BookOpen },
   { title: "Usuários", href: "/admin/users", icon: Users },
   { title: "Salas", href: "/admin/rooms", icon: DoorOpen },
   { title: "Configurações", href: "/admin/settings", icon: Settings },

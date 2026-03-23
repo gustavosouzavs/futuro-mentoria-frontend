@@ -391,6 +391,11 @@ export function MentoriaDetailsClient() {
                   </Link>
                 </Button>
               )}
+              {appointment.status === "completed" && appointment.hasFeedback && (
+                <Badge variant="secondary" className="w-full justify-center py-2">
+                  Feedback já enviado
+                </Badge>
+              )}
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="w-full">

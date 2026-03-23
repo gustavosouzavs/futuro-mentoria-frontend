@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
+  BookOpen,
   Users,
   Settings,
   Clock,
@@ -30,6 +31,11 @@ const adminNavItems = [
     title: "Horários",
     href: "/admin/horarios",
     icon: Clock,
+  },
+  {
+    title: "Mentorias",
+    href: "/admin/mentorias",
+    icon: BookOpen,
   },
   {
     title: "Usuários",

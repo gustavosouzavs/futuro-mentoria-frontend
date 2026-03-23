@@ -235,6 +235,63 @@ export const adminMetricsApi = {
     }>("/api/admin/metrics"),
 };
 
+export type AdminAppointmentRow = {
+  id: string;
+  status: "pending" | "confirmed" | "completed" | "cancelled";
+  subject: string;
+  date: string;
+  time: string;
+  createdAt: string;
+  updatedAt: string | null;
+  message: string | null;
+  preparationItems: string[];
+  mentor: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+  };
+  student: {
+    id: string | null;
+    name: string;
+    email: string;
+    phone: string | null;
+    grade: string | null;
+  };
+  materials: Array<{
+    id: string;
+    name: string;
+    url: string;
+    type: string;
+    uploadedAt: string;
+  }>;
+  feedbacks: {
+    student: {
+      id: string;
+      rating: number | null;
+      comment: string | null;
+      satisfaction: string | null;
+      topics: string[];
+      createdAt: string;
+    } | null;
+    mentor: {
+      id: string;
+      rating: number | null;
+      comment: string | null;
+      satisfaction: string | null;
+      topics: string[];
+      createdAt: string;
+    } | null;
+  };
+};
+
+export const adminAppointmentsApi = {
+  list: () =>
+    api.get<{
+      appointments: AdminAppointmentRow[];
+    }>("/api/admin/appointments"),
+};
+
 // Admin - usuários
 export const adminUsersApi = {
   list: (params?: { page?: number; limit?: number; search?: string; role?: UserType }) => {

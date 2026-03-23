@@ -229,6 +229,11 @@ export function DashboardClient() {
                           Feedback pendente
                         </Badge>
                       )}
+                      {appointment.status === "completed" && appointment.hasFeedback && (
+                        <Badge variant="secondary" className="text-xs">
+                          Feedback enviado
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">

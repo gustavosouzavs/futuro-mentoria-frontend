@@ -14,6 +14,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { feedbackApi } from "@/lib/api";
 import type { Satisfaction } from "@/lib/api";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 
 interface FeedbackFormData {
   rating: number;
@@ -38,6 +40,10 @@ export function FeedbackClient() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { data: appointment } = useSWR<{ hasFeedback?: boolean }>(
+    appointmentId ? `/api/mentor/appointments/${appointmentId}` : null,
+    fetcher
+  );
 
   const topics = [
     "Conceitos fundamentais",
@@ -94,6 +100,28 @@ export function FeedbackClient() {
             </CardDescription>
           </CardHeader>
         </Card>
+      </div>
+    );
+  }
+
+  if (appointment?.hasFeedback) {
+    return (
+      <div className="container px-4 py-8">
+        <div className="mx-auto max-w-2xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Feedback já enviado</CardTitle>
+              <CardDescription>
+                Você já avaliou esta mentoria. Não é possível enviar o feedback novamente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link href={`/mentor/mentorias/${appointmentId}`}>Voltar para mentoria</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

@@ -80,7 +80,7 @@ const agendarSchema = z
     name: z.string().min(1, "Nome é obrigatório"),
     email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
     grade: z.string().min(1, "Selecione a série"),
-    subject: z.string().min(1, "Selecione a área do ENEM"),
+    subject: z.string().optional(),
     message: z.string().optional(),
     preparationItemsText: z.string().optional(),
   })
@@ -109,7 +109,6 @@ export function AgendarClient() {
       name: "",
       email: "",
       grade: "",
-      subject: "",
       message: "",
       preparationItemsText: "",
     },
@@ -178,7 +177,7 @@ export function AgendarClient() {
         studentEmail: values.email,
         grade: values.grade,
         mentorId: values.mentor,
-        subject: values.subject,
+        subject: values.subject ?? "",
         date: dateOnly,
         time: values.time,
         message: values.message || undefined,
@@ -439,7 +438,7 @@ export function AgendarClient() {
                   )}
                 />
 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="subject"
                   render={({ field }) => (
@@ -465,7 +464,7 @@ export function AgendarClient() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 <FormField
                   control={form.control}
