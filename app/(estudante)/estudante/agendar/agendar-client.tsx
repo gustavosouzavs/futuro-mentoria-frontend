@@ -22,6 +22,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -438,7 +439,7 @@ export function AgendarClient() {
                   )}
                 />
 
-                {/* <FormField
+                <FormField
                   control={form.control}
                   name="subject"
                   render={({ field }) => (
@@ -464,17 +465,21 @@ export function AgendarClient() {
                       <FormMessage />
                     </FormItem>
                   )}
-                /> */}
+                />
 
                 <FormField
                   control={form.control}
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mensagem (Opcional)</FormLabel>
+                      <FormLabel>Mensagem para o mentor (opcional)</FormLabel>
+                      <FormDescription>
+                        Aparece para o mentor como &quot;Mensagem do estudante (no agendamento)&quot;, separada da
+                        resposta dele.
+                      </FormDescription>
                       <FormControl>
                         <Textarea
-                          placeholder="Descreva brevemente o que você gostaria de trabalhar na mentoria..."
+                          placeholder="Ex.: dúvidas, objetivos ou contexto para a sessão..."
                           rows={4}
                           {...field}
                         />
@@ -489,10 +494,15 @@ export function AgendarClient() {
                   name="preparationItemsText"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Materiais e links (Opcional)</FormLabel>
+                      <FormLabel>Links e observações (opcional)</FormLabel>
+                      <FormDescription>
+                        Uma linha por link ou texto. Serão enviados ao mentor com o pedido (e podem ser
+                        editados depois). Para anexar arquivos (PDF, etc.), use &quot;Materiais da
+                        mentoria&quot; na página de detalhes após confirmar o agendamento.
+                      </FormDescription>
                       <FormControl>
                         <Textarea
-                          placeholder="Cole links e/ou informações para o mentor. Um por linha."
+                          placeholder="Ex.: https://... (um por linha)"
                           rows={4}
                           {...field}
                         />

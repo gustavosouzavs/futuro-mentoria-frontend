@@ -27,7 +27,6 @@ import {
   BookOpen,
   FileText,
   MessageSquare,
-  Upload,
   Save,
   ArrowLeft,
   Copy,
@@ -36,15 +35,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { fetcher } from "@/lib/fetcher";
 import { parseBrazilDate } from "@/lib/date-brazil";
-import { mentorAppointmentsApi } from "@/lib/api";
-import { resolveMaterialUrl } from "@/lib/material-url";
+import { mentorAppointmentsApi, type AppointmentMaterialDto } from "@/lib/api";
+import { openOrDownloadMaterial } from "@/lib/material-download";
+import { AppointmentFileDropzone } from "@/components/appointment-file-dropzone";
+import { AddAppointmentLinkMaterialDialog } from "@/components/add-appointment-link-material-dialog";
 
-interface Material {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  uploadedAt: string;
+function materialSourceLabel(m: AppointmentMaterialDto): string {
+  const s = m.source ?? "mentor";
+  return s === "student" ? "Estudante" : "Mentor";
 }
 
 interface AppointmentDetails {
@@ -56,9 +54,10 @@ interface AppointmentDetails {
   date: string;
   time: string;
   status: "pending" | "confirmed" | "completed" | "cancelled";
+  studentMessage?: string;
   message?: string;
   preparationItems?: string[];
-  materials: Material[];
+  materials: AppointmentMaterialDto[];
   hasFeedback?: boolean;
 }
 
@@ -73,6 +72,7 @@ export function MentoriaDetailsClient() {
   );
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [statusLoading, setStatusLoading] = useState<null | "confirm" | "complete">(null);
 
   useEffect(() => {
@@ -143,15 +143,17 @@ export function MentoriaDetailsClient() {
     }
   };
 
-  const handleAddMaterial = () => {
-    const name = prompt("Nome do material:");
-    const url = prompt("URL ou link (use https://... ou caminho absoluto do arquivo):");
-    const type = prompt("Tipo: pdf, doc, link ou other", "link") as "pdf" | "doc" | "link" | "other";
-    if (!name || !url) return;
-    mentorAppointmentsApi
-      .addMaterial(appointmentId, { name, url, type })
-      .then(() => mutate())
-      .catch((err) => toast.error(err instanceof Error ? err.message : "Erro ao adicionar material."));
+  const handleMaterialUpload = async (file: File) => {
+    setUploadingFile(true);
+    try {
+      await mentorAppointmentsApi.uploadMaterial(appointmentId, file);
+      await mutate();
+      toast.success("Arquivo enviado com sucesso.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao enviar arquivo.");
+    } finally {
+      setUploadingFile(false);
+    }
   };
 
   if (loading) {
@@ -251,15 +253,34 @@ export function MentoriaDetailsClient() {
             </CardContent>
           </Card>
 
+          {appointment.studentMessage?.trim() ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Mensagem do estudante (no agendamento)
+                </CardTitle>
+                <CardDescription>
+                  Texto enviado pelo estudante ao solicitar a mentoria. Somente leitura.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm whitespace-pre-wrap rounded-md border bg-muted/40 p-3">
+                  {appointment.studentMessage.trim()}
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Mensagem do Mentor (para o estudante)
+                Sua mensagem para o estudante
               </CardTitle>
               <CardDescription>
-                Envie instruções, orientações ou informações importantes. Use &quot;Salvar
-                alterações&quot; abaixo.
+                Instruções ou orientações que o estudante vê em &quot;Detalhes da mentoria&quot;. Use
+                &quot;Salvar alterações&quot; abaixo.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -274,9 +295,10 @@ export function MentoriaDetailsClient() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Materiais e links do estudante</CardTitle>
+              <CardTitle>Links e observações do estudante</CardTitle>
               <CardDescription>
-                Links e materiais enviados pelo estudante para a mentoria
+                Uma linha por item (enviados no agendamento ou atualizados depois em &quot;Detalhes da
+                mentoria&quot;). Não substitui arquivos: PDFs grandes combinam melhor por WhatsApp.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -304,50 +326,94 @@ export function MentoriaDetailsClient() {
                 Materiais de Estudo
               </CardTitle>
               <CardDescription>
-                Compartilhe links (https://…) ou URLs de arquivos do sistema. O estudante abre pelo
-                botão Baixar/Abrir. Se preferir, envie arquivos pesados por WhatsApp ou e-mail.
+                Envie arquivos (PDF, Word, imagens) ou adicione links. Arquivos ficam no servidor e
+                podem ser baixados com a sessão da mentoria; links abrem em nova aba.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button onClick={handleAddMaterial} variant="outline" className="w-full">
-                <Upload className="mr-2 h-4 w-4" />
-                Adicionar Material
-              </Button>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <AddAppointmentLinkMaterialDialog
+                  trigger={
+                    <Button type="button" variant="outline" className="w-full sm:w-auto shrink-0">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Adicionar link
+                    </Button>
+                  }
+                  onSubmit={async (values) => {
+                    try {
+                      await mentorAppointmentsApi.addMaterial(appointmentId, {
+                        name: values.name,
+                        url: values.url.trim(),
+                        type: values.type,
+                      });
+                      await mutate();
+                      toast.success("Link adicionado.");
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Erro ao adicionar link.");
+                      throw err;
+                    }
+                  }}
+                />
+              </div>
+
+              <AppointmentFileDropzone
+                disabled={uploadingFile}
+                onFileSelected={(file) => void handleMaterialUpload(file)}
+              />
+              {uploadingFile ? (
+                <p className="text-center text-sm text-muted-foreground">Enviando arquivo…</p>
+              ) : null}
+
               {appointment.materials.length > 0 ? (
                 <div className="space-y-3">
                   {appointment.materials.map((material) => (
                     <div
                       key={material.id}
-                      className="flex items-center justify-between rounded-lg border p-3"
+                      className="flex flex-col gap-3 rounded-lg border bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-sm">{material.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Enviado em{" "}
-                            {format(parseBrazilDate(material.uploadedAt), "dd/MM/yyyy 'às' HH:mm", {
-                              locale: ptBR,
-                            })}
-                          </p>
+                      <div className="flex items-start gap-3 min-w-0">
+                        <FileText className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{material.name}</p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <Badge variant="secondary" className="text-xs font-normal">
+                              {materialSourceLabel(material)}
+                            </Badge>
+                            {material.isFile ? (
+                              <Badge variant="outline" className="text-xs font-normal">
+                                Arquivo
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs font-normal">
+                                Link
+                              </Badge>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {format(parseBrazilDate(material.uploadedAt), "dd/MM/yyyy 'às' HH:mm", {
+                                locale: ptBR,
+                              })}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <a
-                          href={resolveMaterialUrl(material.url)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          Abrir
-                        </a>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        className="shrink-0 w-full sm:w-auto"
+                        onClick={() =>
+                          void openOrDownloadMaterial(material.url, material.name || "material")
+                        }
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Abrir / baixar
                       </Button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum material adicionado ainda
+                <p className="text-sm text-muted-foreground text-center py-2 rounded-lg border border-dashed">
+                  Nenhum material ainda. Use o envio acima ou um link.
                 </p>
               )}
             </CardContent>

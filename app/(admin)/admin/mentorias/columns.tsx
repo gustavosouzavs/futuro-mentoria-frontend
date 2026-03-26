@@ -57,21 +57,28 @@ function DetailsDialog({ appointment }: { appointment: AdminAppointmentRow }) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 rounded-md border p-3">
-            <p className="font-medium">Mensagem da mentoria</p>
-            <p className="text-sm whitespace-pre-wrap">{appointment.message || "Sem mensagem."}</p>
+            <p className="font-medium">Mensagem do estudante (agendamento)</p>
+            <p className="text-sm whitespace-pre-wrap">
+              {appointment.studentMessage || "Sem mensagem do estudante."}
+            </p>
           </div>
           <div className="space-y-2 rounded-md border p-3">
-            <p className="font-medium">Itens de preparação</p>
-            {appointment.preparationItems.length ? (
-              <ul className="list-disc pl-5 text-sm">
-                {appointment.preparationItems.map((item, idx) => (
-                  <li key={`${appointment.id}-prep-${idx}`}>{item}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">Sem itens de preparação.</p>
-            )}
+            <p className="font-medium">Mensagem do mentor (para o estudante)</p>
+            <p className="text-sm whitespace-pre-wrap">{appointment.message || "Sem mensagem."}</p>
           </div>
+        </div>
+
+        <div className="space-y-2 rounded-md border p-3">
+          <p className="font-medium">Links e observações (estudante → mentor)</p>
+          {appointment.preparationItems.length ? (
+            <ul className="list-disc pl-5 text-sm">
+              {appointment.preparationItems.map((item, idx) => (
+                <li key={`${appointment.id}-prep-${idx}`}>{item}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sem itens.</p>
+          )}
         </div>
 
         <div className="space-y-2 rounded-md border p-3">

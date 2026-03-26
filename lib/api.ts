@@ -51,6 +51,42 @@ export const api = {
   },
 };
 
+/** POST multipart (fetch + cookies) — evita Content-Type JSON do axios em FormData. */
+export async function postFormData<T>(path: string, formData: FormData): Promise<T> {
+  const base = baseURL.replace(/\/$/, "");
+  const p = path.startsWith("/") ? path : `/${path}`;
+  const res = await fetch(`${base}${p}`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+  const text = await res.text();
+  let data: unknown = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = {};
+  }
+  if (!res.ok) {
+    const msg =
+      typeof data === "object" && data !== null && "message" in data
+        ? String((data as { message: unknown }).message)
+        : text || `Erro ${res.status}`;
+    throw new Error(msg);
+  }
+  return data as T;
+}
+
+export type AppointmentMaterialDto = {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  uploadedAt: string;
+  isFile: boolean;
+  source: "mentor" | "student";
+};
+
 // --- Tipos conforme API_DOCUMENTATION.md ---
 
 export type UserType = "student" | "mentor" | "admin";
@@ -243,6 +279,7 @@ export type AdminAppointmentRow = {
   time: string;
   createdAt: string;
   updatedAt: string | null;
+  studentMessage: string | null;
   message: string | null;
   preparationItems: string[];
   mentor: {
@@ -258,13 +295,7 @@ export type AdminAppointmentRow = {
     phone: string | null;
     grade: string | null;
   };
-  materials: Array<{
-    id: string;
-    name: string;
-    url: string;
-    type: string;
-    uploadedAt: string;
-  }>;
+  materials: AppointmentMaterialDto[];
   feedbacks: {
     student: {
       id: string;
@@ -394,19 +425,26 @@ export const studentAppointmentsApi = {
       id: string;
       mentorName: string;
       mentorEmail: string;
+      mentorPhone?: string;
       subject: string;
       date: string;
       time: string;
       status: string;
+      studentMessage?: string;
       message?: string;
       preparationItems?: string[];
-      materials: Array<{ id: string; name: string; url: string; type: string; uploadedAt: string }>;
+      materials: AppointmentMaterialDto[];
       hasFeedback: boolean;
     }>(`/api/student/appointments/${id}`),
   updatePreparationItems: (id: string, preparationItems: string[]) =>
     api.patch<{ message: string }>(`/api/student/appointments/${id}/preparation-items`, {
       preparationItems,
     }),
+  uploadMaterial: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return postFormData<AppointmentMaterialDto>(`/api/student/appointments/${id}/materials/upload`, fd);
+  },
 };
 
 // Mentor appointments (rotas extras do backend, se existirem)
@@ -436,9 +474,10 @@ export const mentorAppointmentsApi = {
       date: string;
       time: string;
       status: string;
+      studentMessage?: string;
       message?: string;
       preparationItems?: string[];
-      materials: Array<{ id: string; name: string; url: string; type: string; uploadedAt: string }>;
+      materials: AppointmentMaterialDto[];
       hasFeedback?: boolean;
     }>(`/api/mentor/appointments/${id}`),
   update: (
@@ -449,10 +488,12 @@ export const mentorAppointmentsApi = {
     id: string,
     data: { name: string; url: string; type: "pdf" | "doc" | "link" | "other" }
   ) =>
-    api.post<{ id: string; name: string; url: string; type: string; uploadedAt: string }>(
-      `/api/mentor/appointments/${id}/materials`,
-      data
-    ),
+    api.post<AppointmentMaterialDto>(`/api/mentor/appointments/${id}/materials`, data),
+  uploadMaterial: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return postFormData<AppointmentMaterialDto>(`/api/mentor/appointments/${id}/materials/upload`, fd);
+  },
 };
 
 // --- Salas e reservas (backend: rooms, room_reservations) ---
