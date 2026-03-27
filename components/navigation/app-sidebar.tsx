@@ -11,6 +11,7 @@ import {
   Settings,
   DoorOpen,
   Clock,
+  FileText,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -48,6 +49,7 @@ const adminNavItems: NavItem[] = [
   { title: "Horários", href: "/admin/horarios", icon: Clock },
   { title: "Mentorias", href: "/admin/mentorias", icon: BookOpen },
   { title: "Usuários", href: "/admin/users", icon: Users },
+  { title: "Relatórios", href: "/admin/relatorios", icon: FileText },
   { title: "Salas", href: "/admin/rooms", icon: DoorOpen },
   { title: "Configurações", href: "/admin/settings", icon: Settings },
 ];

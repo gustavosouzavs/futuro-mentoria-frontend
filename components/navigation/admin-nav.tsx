@@ -9,6 +9,7 @@ import {
   Users,
   Settings,
   Clock,
+  FileText,
   LogOut,
   Menu,
 } from "lucide-react";
@@ -41,6 +42,11 @@ const adminNavItems = [
     title: "Usuários",
     href: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "Relatórios",
+    href: "/admin/relatorios",
+    icon: FileText,
   },
   {
     title: "Configurações",
